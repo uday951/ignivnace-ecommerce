@@ -12,12 +12,12 @@ const Cart = () => {
         {/* Cart Items */}
         <div className="flex-1">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h1 className="text-3xl font-bold mb-6 pb-4 border-b">Shopping Cart</h1>
+            <h1 className="text-3xl text-black font-bold mb-6 pb-4 border-b">Shopping Cart</h1>
             
             {cart.length === 0 ? (
               <div className="text-center py-12">
                 <h2 className="text-2xl font-bold text-gray-700 mb-4">Your IGNIVANCE Cart is empty.</h2>
-                <Link to="/products" className="text-blue-600 hover:text-[#FF6A00] font-medium hover:underline">
+                <Link to="/" className="text-blue-600 hover:text-[#FF6A00] font-medium hover:underline">
                   Shop today's deals
                 </Link>
               </div>

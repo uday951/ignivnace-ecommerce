@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import api from '../services/api';
 
 const Checkout = () => {
   const { cart, cartTotal, cartCount, clearCart } = useCart();
@@ -14,10 +15,48 @@ const Checkout = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePlaceOrder = (e) => {
+  const [placing, setPlacing] = useState(false);
+
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    clearCart();
-    navigate('/dashboard');
+    setPlacing(true);
+    try {
+      const isObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
+      const orderItems = cart.map((item) => {
+        const id = item.id || item._id;
+        return {
+          ...(isObjectId(id) && { product: id }),
+          title: item.title,
+          quantity: item.quantity,
+          image: item.images?.[0] || item.image,
+          price: +(item.price - (item.price * (item.discount || 0)) / 100).toFixed(2),
+        };
+      });
+      const taxPrice = +(cartTotal * 0.08).toFixed(2);
+      const totalPrice = +(cartTotal * 1.08).toFixed(2);
+
+      await api.post('/orders', {
+        orderItems,
+        shippingAddress: {
+          fullName: formData.fullName,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.zip,
+          country: 'US',
+        },
+        paymentMethod: 'Card',
+        itemsPrice: +cartTotal.toFixed(2),
+        taxPrice,
+        shippingPrice: 0,
+        totalPrice,
+      });
+      clearCart();
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to place order. Are you logged in?');
+    } finally {
+      setPlacing(false);
+    }
   };
 
   if (cart.length === 0 && step === 1) {
@@ -126,8 +165,8 @@ const Checkout = () => {
                 </div>
 
                 <div className="pt-4 border-t mt-6">
-                  <button type="submit" className="bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-3 px-8 font-bold text-lg shadow-md w-full sm:w-auto transition-transform active:scale-95">
-                    Place your order
+                  <button type="submit" disabled={placing} className="bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-3 px-8 font-bold text-lg shadow-md w-full sm:w-auto transition-transform active:scale-95 disabled:opacity-60">
+                    {placing ? 'Placing order...' : 'Place your order'}
                   </button>
                   <p className="text-xs text-gray-500 mt-2">By placing your order, you agree to IGNIVANCE's privacy notice and conditions of use.</p>
                 </div>

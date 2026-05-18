@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Package, User, MapPin, Heart } from 'lucide-react';
+import api from '../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('orders');
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && activeTab === 'orders') {
+      setOrdersLoading(true);
+      api.get('/orders/myorders')
+        .then(res => setOrders(res.data.data || []))
+        .catch(() => setOrders([]))
+        .finally(() => setOrdersLoading(false));
+    }
+  }, [user, activeTab]);
 
   const tabs = [
     { id: 'orders', label: 'Your Orders', icon: Package },
@@ -50,10 +63,40 @@ const Dashboard = () => {
             {activeTab === 'orders' && (
               <div>
                 <h2 className="text-2xl font-bold mb-4">Your Orders</h2>
-                <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg">
-                  <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600 text-lg">You have no pending orders.</p>
-                </div>
+                {ordersLoading ? (
+                  <p className="text-gray-500">Loading orders...</p>
+                ) : orders.length === 0 ? (
+                  <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                    <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-600 text-lg">You have no orders yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map(order => (
+                      <div key={order._id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-500">Order ID: <span className="font-mono text-gray-700">{order._id}</span></span>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${order.isDelivered ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {order.isDelivered ? 'Delivered' : 'Processing'}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 mb-2">
+                          Placed: {new Date(order.createdAt).toLocaleDateString()} &nbsp;|&nbsp; Total: <span className="font-bold text-gray-900">${order.totalPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {order.orderItems.map((item, i) => (
+                            <div key={i} className="flex items-center gap-3 text-sm">
+                              <img src={item.image} alt={item.title} className="w-10 h-10 object-contain border rounded" />
+                              <span className="flex-1 text-gray-700 line-clamp-1">{item.title}</span>
+                              <span className="text-gray-500">x{item.quantity}</span>
+                              <span className="font-medium">${item.price.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

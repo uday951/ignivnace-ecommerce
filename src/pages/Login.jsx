@@ -1,18 +1,32 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../hooks/useToast';
+import api from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Dummy login logic
-    login({ id: 1, name: 'John Doe', email });
-    navigate('/');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      if (data.success) {
+        login(data.data);
+        showToast('Successfully logged in!', 'success');
+        navigate('/');
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Invalid login coordinates', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,8 +62,8 @@ const Login = () => {
               className="w-full border border-gray-400 rounded px-3 py-2 outline-none focus:ring-1 focus:ring-[#FF6A00] focus:border-[#FF6A00]" 
             />
           </div>
-          <button type="submit" className="w-full bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-2 font-medium shadow-sm transition-transform active:scale-95">
-            Continue
+          <button disabled={loading} type="submit" className="w-full bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-2 font-medium shadow-sm transition-transform active:scale-95 disabled:opacity-50">
+            {loading ? 'Authenticating...' : 'Continue'}
           </button>
         </form>
 

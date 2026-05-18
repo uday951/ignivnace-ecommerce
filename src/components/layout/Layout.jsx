@@ -8,8 +8,8 @@ const Layout = () => {
       <Header />
       <main className="flex-1 w-full relative">
         <Outlet />
-      </main>
-      <Footer />
+      </main >
+      <Footer  />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../hooks/useToast';
+import api from '../services/api';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -8,11 +10,24 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    login({ id: 1, name, email });
-    navigate('/');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/register', { name, email, password });
+      if (data.success) {
+        login(data.data);
+        showToast('Account successfully created! Welcome to IGNIVANCE.', 'success');
+        navigate('/');
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Creation failed', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,8 +75,8 @@ const Register = () => {
               <span className="text-blue-500 mr-1 text-lg leading-none">ℹ</span> Passwords must be at least 6 characters.
             </p>
           </div>
-          <button type="submit" className="w-full bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-2 font-medium shadow-sm transition-transform active:scale-95">
-            Verify email
+          <button disabled={loading} type="submit" className="w-full bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-lg py-2 font-medium shadow-sm transition-transform active:scale-95 disabled:opacity-50">
+            {loading ? 'Registering...' : 'Verify email'}
           </button>
         </form>
 

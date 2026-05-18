@@ -22,7 +22,7 @@ const Home = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
-              Shop Smart. <span className="text-[#FF6A00]">Live Better.</span>
+              Shop Smart. <span className="text-[#00000]">Live Better.</span>
             </h1>
             <p className="max-w-xl text-lg text-gray-300 mb-8">
               Discover unparalleled premium tech and elegant fashion delivered right to your doorstep. IGNIVANCE offers the ultimate shopping experience.

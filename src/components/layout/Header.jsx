@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, User, X } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { Search, Menu, User, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import CartIcon from '../cart/CartIcon';
 
 const Header = () => {
-  const { cartCount } = useCart();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -27,22 +26,30 @@ const Header = () => {
         </div>
 
         {/* Search Bar - Desktop hidden on mobile */}
-        <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
-          <div className="flex w-full">
-            <select className="bg-gray-100 text-gray-800 px-3 py-2 rounded-l-md border-r outline-none text-sm">
-              <option>All Categories</option>
+        <div className="hidden lg:flex flex-1 max-w-2xl mx-8 relative">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              const term = e.target.search.value;
+              if (term) window.location.href = `/search?q=${term}`;
+            }}
+            className="flex w-full bg-white rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-[#FF6A00]"
+          >
+            <select className="bg-gray-100 text-gray-800 px-3 py-2 border-r border-gray-300 outline-none text-sm hidden md:block cursor-pointer">
+              <option>All</option>
               <option>Electronics</option>
               <option>Fashion</option>
             </select>
             <input 
               type="text" 
+              name="search"
               placeholder="Search products..." 
               className="w-full px-4 py-2 text-gray-900 outline-none"
             />
-            <button className="bg-[#FF6A00] px-6 py-2 rounded-r-md hover:bg-[#e65c00] transition flex items-center justify-center">
+            <button type="submit" className="bg-[#FF6A00] px-6 py-2 rounded-r-md hover:bg-[#e65c00] transition flex items-center justify-center">
               <Search size={20} className="text-white" />
             </button>
-          </div>
+          </form>
         </div>
 
         {/* Right Nav */}
@@ -50,7 +57,7 @@ const Header = () => {
           <div className="hidden md:flex flex-col">
             <span className="text-xs text-gray-300">Hello, {user ? user.name : 'Sign in'}</span>
             {user ? (
-              <button onClick={logout} className="font-semibold text-sm hover:text-[#FF6A00]">Log out</button>
+              <button onClick={logout} className="font-semibold text-sm hover:text-[#FF6A00] text-left">Log out</button>
             ) : (
               <Link to="/login" className="font-semibold text-sm hover:text-[#FF6A00]">Account & Lists</Link>
             )}
@@ -61,32 +68,30 @@ const Header = () => {
             <span className="font-semibold text-sm">& Orders</span>
           </Link>
 
-          <Link to="/cart" className="flex items-center relative hover:text-[#FF6A00] transition">
-            <div className="relative">
-              <ShoppingCart size={28} />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#FF6A00] text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </div>
-            <span className="hidden md:block ml-2 font-semibold">Cart</span>
-          </Link>
+          <CartIcon />
         </div>
       </div>
 
       {/* Mobile Search Bar */}
       <div className="lg:hidden px-4 pb-3">
-        <div className="flex w-full">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            const term = e.target.mSearch.value;
+            if (term) window.location.href = `/search?q=${term}`;
+          }}
+          className="flex w-full bg-white rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-[#FF6A00]"
+        >
           <input 
             type="text" 
+            name="mSearch"
             placeholder="Search products..." 
-            className="w-full px-4 py-2 text-gray-900 rounded-l-md outline-none"
+            className="w-full px-4 py-2 text-gray-900 outline-none"
           />
-          <button className="bg-[#FF6A00] px-4 py-2 rounded-r-md hover:bg-[#e65c00] transition flex items-center justify-center">
+          <button type="submit" className="bg-[#FF6A00] px-4 py-2 hover:bg-[#e65c00] transition flex items-center justify-center">
             <Search size={20} className="text-white" />
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Bottom Nav Bar */}
@@ -96,9 +101,9 @@ const Header = () => {
         </button>
         <Link to="/products" className="hover:border-white border border-transparent p-1 rounded">Today's Deals</Link>
         <Link to="/products" className="hover:border-white border border-transparent p-1 rounded">Customer Service</Link>
-        <Link to="/products" className="hover:border-white border border-transparent p-1 rounded">Registry</Link>
-        <Link to="/products" className="hover:border-white border border-transparent p-1 rounded">Gift Cards</Link>
-        <Link to="/products" className="hover:border-white border border-transparent p-1 rounded">Sell</Link>
+        <Link to="/registry" className="hover:border-white border border-transparent p-1 rounded">Registry</Link>
+        <Link to="/gift-cards" className="hover:border-white border border-transparent p-1 rounded">Gift Cards</Link>
+        <Link to="/sell" className="hover:border-white border border-transparent p-1 rounded">Sell</Link>
       </div>
 
       {/* Mobile Drawer Overlay */}

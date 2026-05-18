@@ -1,16 +1,29 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, ShieldCheck, Truck, RefreshCcw } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { dummyProducts } from '../services/dummyData';
-import { useState } from 'react';
+import { getProductById } from '../services/productService';
+import { useState, useEffect } from 'react';
+import AddToCartButton from '../components/product/AddToCartButton';
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const [activeImg, setActiveImg] = useState(0);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const product = dummyProducts.find(p => p.id === id);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      const data = await getProductById(id);
+      setProduct(data);
+      setLoading(false);
+    };
+    fetchProduct();
+  }, [id]);
 
+  if (loading) return <div className="p-20 text-center text-xl font-medium animate-pulse">Loading Product Data...</div>;
   if (!product) return <div className="p-20 text-center text-2xl font-bold">Product not found.</div>;
 
   const discountedPrice = product.price - (product.price * product.discount) / 100;
@@ -100,14 +113,14 @@ const ProductDetails = () => {
           <div className="mt-auto bg-white border border-gray-300 rounded-xl p-6 shadow-md">
             <h3 className="text-xl font-bold mb-4 text-green-700">In Stock.</h3>
             
+            <AddToCartButton product={product} size="lg" className="mb-3" />
             <button 
-              onClick={() => addToCart(product)}
-              className="w-full bg-[#FFD814] hover:bg-[#F7CA00] border border-[#FCD200] rounded-full py-3 px-4 font-medium transition mb-3 flex items-center justify-center space-x-2"
+              onClick={() => {
+                 addToCart(product);
+                 navigate('/checkout');
+              }}
+              className="w-full bg-[#FFA41C] hover:bg-[#FA8900] border border-[#FF8F00] rounded-full py-3 px-4 font-medium transition"
             >
-               <ShoppingCart size={20} />
-               <span>Add to Cart</span>
-            </button>
-            <button className="w-full bg-[#FFA41C] hover:bg-[#FA8900] border border-[#FF8F00] rounded-full py-3 px-4 font-medium transition">
               Buy Now
             </button>
 
@@ -130,10 +143,10 @@ const ProductDetails = () => {
         {product.reviews.map((rev, idx) => (
           <div key={idx} className="mb-6 pb-6 border-b last:border-0">
              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-700">
-                  {rev.user[0]}
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-700 capitalize">
+                  {(rev.name || rev.user || '?')[0]}
                 </div>
-                <span className="font-medium text-gray-900">{rev.user}</span>
+                <span className="font-medium text-gray-900">{rev.name || rev.user || 'Customer'}</span>
              </div>
              <div className="flex items-center mb-2">
                 <div className="flex text-[#FF6A00]">
